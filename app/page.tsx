@@ -17,14 +17,14 @@ export default function HomePage() {
             <p className="text-muted-foreground">오늘의 물 섭취를 기록해보세요</p>
           </div>
 
+          {/* Today's Records */}
+          <TodayIntakeList />
+
           {/* Intake Recorder */}
           <IntakeRecorder />
 
           {/* Condition Prompt */}
           <ConditionPrompt />
-
-          {/* Today's Records */}
-          <TodayIntakeList />
         </div>
       </main>
     </div>
