@@ -42,25 +42,31 @@ export async function retrieveChunks(
   const url = `${DIFY_API_BASE_URL}/datasets/${DIFY_DATASET_ID}/retrieve`
 
   try {
+    const requestBody = {
+      query: queryText,
+      embedding: queryEmbedding,
+      top_k: topK,
+    }
+
+    console.log('Dify API request:', { url, top_k: topK, query_length: queryText.length, embedding_length: queryEmbedding.length })
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${DIFY_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        query: queryText,
-        embedding: queryEmbedding,
-        top_k: topK,
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
+      console.error('Dify API error response:', { status: response.status, statusText: response.statusText, body: errorText })
       throw new Error(`Dify API error: ${response.status} ${response.statusText} - ${errorText}`)
     }
 
     const data = await response.json() as DifyRetrieveResponse
+    console.log('Dify API response:', { documents_count: data.documents?.length || 0 })
     return data.documents || []
   } catch (error) {
     console.error('Error retrieving chunks from Dify:', error)

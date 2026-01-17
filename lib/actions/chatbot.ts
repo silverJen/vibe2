@@ -53,6 +53,8 @@ export async function chatWithAssistant(question: string): Promise<ChatbotRespon
         // 2. Dify 지식 기반에서 관련 문서 청크 검색
         const chunks = await retrieveChunks(queryEmbedding, question, 3)
 
+        console.log('Retrieved chunks:', { count: chunks.length, chunks: chunks.map(c => ({ id: c.id, score: c.score, text_preview: c.text.substring(0, 100) })) })
+
         if (chunks.length === 0) {
             return {
                 success: false,
