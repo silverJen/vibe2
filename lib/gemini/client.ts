@@ -26,6 +26,40 @@ function getGeminiModel() {
 }
 
 /**
+ * 텍스트를 임베딩 벡터로 변환
+ * 모델: gemini-embedding-001
+ * 
+ * @param text - 임베딩할 텍스트
+ * @returns 임베딩 벡터 배열
+ */
+export async function generateEmbedding(text: string): Promise<number[]> {
+    if (!genAI) {
+        throw new Error('GEMINI_API_KEY is not set')
+    }
+
+    try {
+        const model = genAI.getGenerativeModel({
+            model: 'embedding-001',
+        })
+
+        const result = await model.embedContent({
+            content: { parts: [{ text }], role: 'user' },
+            taskType: 'RETRIEVAL_DOCUMENT',
+        })
+
+        const embedding = result.embedding
+        if (!embedding || !embedding.values) {
+            throw new Error('임베딩 결과가 올바르지 않습니다.')
+        }
+
+        return embedding.values
+    } catch (error) {
+        console.error('Gemini embedding API error:', error)
+        throw new Error('임베딩 생성에 실패했습니다.')
+    }
+}
+
+/**
  * 물 섭취 패턴 분석 리포트 생성
  */
 export async function generateWaterIntakeReport(

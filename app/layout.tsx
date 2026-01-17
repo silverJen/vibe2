@@ -6,6 +6,7 @@ import "./globals.css"
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileNav } from "@/components/layout/mobile-nav"
 import { Toaster } from "@/components/ui/sonner"
+import { FloatingButton } from "@/components/features/chatbot/floating-button"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -46,6 +47,7 @@ export default function RootLayout({
           <div className="flex-1 pb-16 md:pb-0">{children}</div>
           <MobileNav />
         </div>
+        <FloatingButton />
         <Analytics />
         <Toaster />
       </body>
