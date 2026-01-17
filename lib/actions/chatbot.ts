@@ -51,7 +51,7 @@ export async function chatWithAssistant(question: string): Promise<ChatbotRespon
         const queryEmbedding = await generateEmbedding(question)
 
         // 2. Dify 지식 기반에서 관련 문서 청크 검색
-        const chunks = await retrieveChunks(queryEmbedding, 3)
+        const chunks = await retrieveChunks(queryEmbedding, question, 3)
 
         if (chunks.length === 0) {
             return {

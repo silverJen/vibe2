@@ -22,11 +22,13 @@ export interface DifyRetrieveResponse {
  * 질문 임베딩을 사용하여 Dify 지식 기반에서 관련 문서 청크를 검색합니다.
  * 
  * @param queryEmbedding - 질문의 임베딩 벡터
+ * @param queryText - 원본 질문 텍스트 (query 필드에 필요)
  * @param topK - 반환할 상위 문서 수 (기본값: 3)
  * @returns 검색된 문서 청크 배열
  */
 export async function retrieveChunks(
   queryEmbedding: number[],
+  queryText: string,
   topK: number = 3
 ): Promise<DifyChunk[]> {
   if (!DIFY_API_KEY) {
@@ -47,6 +49,7 @@ export async function retrieveChunks(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        query: queryText,
         embedding: queryEmbedding,
         top_k: topK,
       }),
