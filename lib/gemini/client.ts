@@ -37,25 +37,34 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         throw new Error('GEMINI_API_KEY is not set')
     }
 
+    if (!text || !text.trim()) {
+        throw new Error('입력 텍스트가 비어있습니다.')
+    }
+
     try {
-        const model = genAI.getGenerativeModel({
-            model: 'embedding-001',
+        // Gemini Embedding 모델을 가져옵니다
+        const embeddingModel = genAI.getGenerativeModel({
+            model: 'gemini-embedding-001',
         })
 
-        const result = await model.embedContent({
-            content: { parts: [{ text }], role: 'user' },
-            taskType: 'RETRIEVAL_DOCUMENT',
-        })
+        // embedContent 메서드를 사용하여 임베딩 생성
+        // 간단한 문자열 형식으로 전달
+        const result = await embeddingModel.embedContent(text.trim())
 
         const embedding = result.embedding
-        if (!embedding || !embedding.values) {
+        if (!embedding || !embedding.values || embedding.values.length === 0) {
             throw new Error('임베딩 결과가 올바르지 않습니다.')
         }
 
         return embedding.values
     } catch (error) {
         console.error('Gemini embedding API error:', error)
-        throw new Error('임베딩 생성에 실패했습니다.')
+        // 상세한 에러 정보를 로그에 기록
+        if (error instanceof Error) {
+            console.error('Error message:', error.message)
+            console.error('Error stack:', error.stack)
+        }
+        throw new Error(`임베딩 생성에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
     }
 }
 
