@@ -27,7 +27,6 @@ export interface DifyRetrieveResponse {
  * @returns 검색된 문서 청크 배열
  */
 export async function retrieveChunks(
-  queryEmbedding: number[],
   queryText: string,
   topK: number = 3
 ): Promise<DifyChunk[]> {
@@ -44,11 +43,10 @@ export async function retrieveChunks(
   try {
     const requestBody = {
       query: queryText,
-      embedding: queryEmbedding,
       top_k: topK,
     }
 
-    console.log('Dify API request:', { url, top_k: topK, query_length: queryText.length, embedding_length: queryEmbedding.length })
+    // console.log('[Dify Debug] Request URL:', url)
 
     const response = await fetch(url, {
       method: 'POST',
@@ -61,15 +59,37 @@ export async function retrieveChunks(
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Dify API error response:', { status: response.status, statusText: response.statusText, body: errorText })
+      console.error('[Dify Debug] API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
       throw new Error(`Dify API error: ${response.status} ${response.statusText} - ${errorText}`)
     }
 
-    const data = await response.json() as DifyRetrieveResponse
-    console.log('Dify API response:', { documents_count: data.documents?.length || 0 })
-    return data.documents || []
+    const data = await response.json() as any
+    // console.log('[Dify Debug] Response keys:', Object.keys(data))
+
+    // Dify API might return 'records' or 'documents' depending on version/endpoint
+    const validDocs = data.records || data.documents || []
+
+    // Map to normalized DifyChunk if necessary
+    // The response structure might be { records: [ { document: {...}, score: ... } ] }
+    // We need to ensure we return DifyChunk[]: { id, text, score }
+
+    // Check first item to see structure
+    if (validDocs.length > 0) {
+      console.log('[Dify Debug] First chunk sample:', JSON.stringify(validDocs[0], null, 2))
+    }
+
+    return validDocs.map((doc: any) => ({
+      id: doc.document?.id || doc.id || doc.segment?.id,
+      text: doc.segment?.content || doc.content || doc.document?.content || doc.text || '', // Handle various structures including segment.content
+      score: doc.score,
+      metadata: doc.document?.doc_metadata
+    }))
   } catch (error) {
-    console.error('Error retrieving chunks from Dify:', error)
+    console.error('[Dify Debug] Fatal Error retrieving chunks:', error)
     throw error
   }
 }

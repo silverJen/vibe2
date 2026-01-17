@@ -1,6 +1,5 @@
 'use server'
 
-import { generateEmbedding } from '@/lib/gemini/client'
 import { retrieveChunks, type DifyChunk } from '@/lib/dify/client'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
@@ -47,18 +46,15 @@ export async function chatWithAssistant(question: string): Promise<ChatbotRespon
             }
         }
 
-        // 1. 사용자 질문을 임베딩으로 변환
-        const queryEmbedding = await generateEmbedding(question)
-
-        // 2. Dify 지식 기반에서 관련 문서 청크 검색
-        const chunks = await retrieveChunks(queryEmbedding, question, 3)
+        // 1. Dify 지식 기반에서 관련 문서 청크 검색 (임베딩은 Dify 내부에서 처리)
+        const chunks = await retrieveChunks(question, 3)
 
         console.log('Retrieved chunks:', { count: chunks.length, chunks: chunks.map(c => ({ id: c.id, score: c.score, text_preview: c.text.substring(0, 100) })) })
 
         if (chunks.length === 0) {
             return {
                 success: false,
-                error: '관련 정보를 찾을 수 없습니다. 다른 질문을 시도해주세요.',
+                error: '관련 정보를 찾을 수 없습니다. (Dify 데이터셋을 확인해주세요)',
             }
         }
 
@@ -110,9 +106,13 @@ ${sources.map((source, index) => `- [${index + 1}] ${source.text}`).join('\n')}`
         }
     } catch (error) {
         console.error('Chatbot error:', error)
+        const errorMessage = error instanceof Error ?
+            `${error.message}\n\n[스택 추적]\n${error.stack}` :
+            '챗봇 응답 생성에 실패했습니다. (알 수 없는 오류)'
+
         return {
             success: false,
-            error: error instanceof Error ? error.message : '챗봇 응답 생성에 실패했습니다.',
+            error: errorMessage,
         }
     }
 }
